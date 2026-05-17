@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Announce It! – Barangay Kapitan Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5EFE6;--card:#FFFFFF;--border:#DDD0C0;
+  --text:#1E1008;--muted:#7A6550;--accent:#D94F2A;
+  --green:#1F8F5E;--blue:#1A5FA8;--yellow:#E8960A;
+  --red:#C4261A;--purple:#6B3FA0;
+  --shadow:0 3px 14px rgba(30,16,8,0.12);
+  --radius:14px;--radius-sm:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+h1,h2,h3,.fredoka{font-family:'Fredoka One',cursive}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.active{display:flex}
+
+/* ── INTRO ── */
+#s-intro{background:linear-gradient(145deg,#102852 0%,#0B4D7A 50%,#124D35 100%);align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden}
+#s-intro::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 20%,rgba(255,255,255,0.06) 0%,transparent 60%),url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M20 20h20v20H20zm-20 0h20v20H0z'/%3E%3C/g%3E%3C/svg%3E")}
+.intro-wrap{position:relative;z-index:1;width:100%;max-width:560px;margin:0 auto}
+.intro-badge{background:rgba(232,150,10,0.25);border:1px solid rgba(232,150,10,0.5);border-radius:30px;padding:6px 16px;font-size:12px;font-weight:800;color:#FFD476;text-align:center;margin-bottom:12px;letter-spacing:1px;text-transform:uppercase}
+.intro-title{font-size:52px;font-weight:700;text-align:center;color:white;line-height:1;margin-bottom:4px}
+.intro-sub{text-align:center;font-size:14px;opacity:0.7;color:white;margin-bottom:20px}
+.intro-card{background:rgba(255,255,255,0.09);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.18);border-radius:20px;padding:22px}
+.comic-panel{background:rgba(0,0,0,0.22);border-radius:10px;padding:12px 14px;margin-bottom:10px;border-left:4px solid var(--yellow)}
+.comic-panel.green{border-left-color:#5DE8A0}
+.comic-panel.red{border-left-color:#FF9090}
+.comic-panel .spk{font-size:10px;font-weight:800;opacity:0.65;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;color:white}
+.comic-panel p{font-size:13px;line-height:1.55;color:white;opacity:.92}
+.quota-callout{background:rgba(232,150,10,0.18);border:1.5px solid rgba(232,150,10,0.45);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;color:white}
+.quota-callout .big{font-family:'Fredoka One',cursive;font-size:32px;color:#FFD476;flex-shrink:0}
+.quota-callout p{font-size:12px;opacity:.9;line-height:1.5}
+.name-lbl{font-size:12px;font-weight:700;color:rgba(255,255,255,0.75);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:.5px}
+.name-inp{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.13);color:white;font-family:'Nunito',sans-serif;font-size:16px;font-weight:700;margin-bottom:10px}
+.name-inp::placeholder{opacity:.4}
+.name-inp:focus{outline:none;border-color:rgba(255,255,255,0.55)}
+.btn-start{width:100%;padding:15px;background:#E8960A;border:none;border-radius:12px;font-family:'Fredoka One',cursive;font-size:22px;color:#1E1008;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 5px 0 #9E6000;margin-bottom:8px}
+.btn-start:hover{transform:translateY(-2px);box-shadow:0 7px 0 #9E6000}
+.btn-start:active{transform:translateY(3px);box-shadow:0 2px 0 #9E6000}
+.win-conditions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.win-cond{background:rgba(0,0,0,0.25);border-radius:10px;padding:10px 12px;text-align:center;border:1.5px solid rgba(255,255,255,0.15)}
+.win-cond .wc-val{font-family:'Fredoka One',cursive;font-size:28px;color:#FFD476;line-height:1}
+.win-cond .wc-label{font-size:11px;font-weight:800;opacity:.75;text-transform:uppercase;letter-spacing:.8px;margin-top:3px;color:white}
+.win-cond .wc-desc{font-size:11px;opacity:.7;margin-top:3px;line-height:1.4;color:white}
+.lang-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:800;color:white;cursor:pointer;letter-spacing:.5px}
+
+/* ── HUD ── */
+.hud{background:#102852;color:white;padding:0 14px;display:flex;align-items:stretch;gap:0;position:sticky;top:0;z-index:200;box-shadow:0 3px 10px rgba(0,0,0,0.3);flex-shrink:0;min-height:52px}
+.hud-section{display:flex;align-items:center;gap:6px;padding:0 12px;border-right:1px solid rgba(255,255,255,0.1);flex-shrink:0}
+.hud-section:first-child{padding-left:0;flex:1;min-width:0}
+.hud-section:last-child{border-right:none;padding-right:0}
+.hud-title{font-family:'Fredoka One',cursive;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hud-chip{border-radius:20px;padding:5px 10px;font-size:12px;font-weight:800;display:flex;align-items:center;gap:3px;white-space:nowrap}
+.hud-chip.bud{background:rgba(31,143,94,0.25);border:1px solid rgba(31,143,94,0.5);color:#7DEBB8}
+.hud-chip.man{background:rgba(232,150,10,0.25);border:1px solid rgba(232,150,10,0.5);color:#FFD476}
+.hud-chip.com{background:rgba(196,38,26,0.25);border:1px solid rgba(196,38,26,0.5);color:#FF9090}
+.hud-timer{font-family:'Fredoka One',cursive;font-size:20px;font-weight:700;min-width:44px;text-align:center;transition:color .3s}
+.hud-timer.warn{color:#FFD476;animation:tick .5s ease infinite alternate}
+.hud-timer.crit{color:#FF6060;animation:tick .25s ease infinite alternate}
+@keyframes tick{from{transform:scale(1)}to{transform:scale(1.12)}}
+
+/* ── GAME LAYOUT ── */
+#s-game{background:var(--bg);overflow:auto}
+.game-body{padding:12px;display:flex;flex-direction:column;gap:10px;max-width:1280px;margin:0 auto;width:100%}
+@media(min-width:900px){
+  .game-body{flex-direction:row;align-items:start;gap:14px;padding:14px}
+  .game-col-left{flex:1.1;display:flex;flex-direction:column;gap:10px;min-width:0}
+  .game-col-right{flex:1;display:flex;flex-direction:column;gap:10px;min-width:0}
+}
+.game-col-left,.game-col-right{display:flex;flex-direction:column;gap:10px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.sec-title{font-size:12px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+
+/* ── NARRATIVE ── */
+.narrative{background:#102852;color:white;border-radius:var(--radius);padding:14px 16px}
+.round-badge{font-family:'Fredoka One',cursive;font-size:11px;background:#E8960A;color:#1E1008;border-radius:20px;padding:3px 12px;display:inline-block;margin-bottom:7px;letter-spacing:.5px}
+.narrative p{font-size:13px;line-height:1.6;opacity:.9}
+.carryover-banner{background:rgba(31,143,94,0.25);border:1px solid rgba(93,232,160,0.4);border-radius:8px;padding:7px 12px;font-size:12px;color:#7DEBB8;margin-top:8px;display:none;font-weight:700}
+
+/* ── QUOTA BAR ── */
+.quota-bar-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px}
+.quota-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.quota-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.quota-val{font-size:13px;font-weight:800}
+.quota-track{background:#EAE0D5;border-radius:20px;height:12px;overflow:hidden;position:relative}
+.quota-fill{height:100%;border-radius:20px;transition:width .5s ease,background .5s;position:relative}
+.quota-target-line{position:absolute;top:0;bottom:0;width:2px;background:rgba(30,16,8,0.35);border-radius:2px}
+
+/* ── DAY CARD ── */
+.day-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;display:flex;align-items:center;gap:12px}
+.day-num-wrap .day-lbl-sm{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.day-num{font-family:'Fredoka One',cursive;font-size:26px;color:#102852;line-height:1}
+.day-info-col{flex:1;font-size:12px;color:var(--muted)}
+.day-info-col strong{color:var(--text);font-weight:800}
+.btn-nextday{padding:10px 16px;background:#102852;border:none;border-radius:10px;font-family:'Fredoka One',cursive;font-size:15px;color:white;cursor:pointer;white-space:nowrap;transition:background .15s}
+.btn-nextday:hover{background:#1A3A7E}
+
+/* ── EVENTS ── */
+.event-item{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:7px;display:flex;gap:10px;transition:border-color .25s,background .25s}
+.event-item:last-child{margin-bottom:0}
+.event-item.urgency-critical{border-color:#C4261A;background:#FFF5F4}
+.event-item.urgency-high{border-color:#D94F2A;background:#FFF8F5}
+.event-item.urgency-med{border-color:#E8960A;background:#FFFBF0}
+.event-item.done{border-color:#1F8F5E;background:#F2FAF6}
+.event-item.expired{opacity:.5;background:#F0ECE6}
+.ev-icon{font-size:22px;flex-shrink:0;margin-top:2px}
+.ev-name{font-weight:800;font-size:13px}
+.ev-desc{font-size:12px;color:var(--muted);margin-top:1px}
+.ev-meta{display:flex;align-items:center;gap:7px;margin-top:5px;flex-wrap:wrap}
+.days-pill{font-size:11px;font-weight:800;padding:2px 9px;border-radius:20px}
+.dp-crit{background:#FFE0DC;color:#8B1010}
+.dp-high{background:#FFE8DC;color:#8B3010}
+.dp-warn{background:#FFF0CC;color:#7A4E00}
+.dp-ok{background:#DFF5EC;color:#0F5E35}
+.dp-done{background:#DFF5EC;color:#0F5E35}
+.dp-exp{background:#E8E0D8;color:#6B5B4E}
+.ev-pct{font-size:11px;color:var(--muted);font-weight:700}
+
+/* ── TOOLS ── */
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tool-card{background:var(--card);border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
+.tool-card:hover:not(.locked):not(.on-cd){border-color:#1A5FA8;transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,95,168,0.15)}
+.tool-card.sel{border-color:#1A5FA8;background:#EEF5FF}
+.tool-card.locked{opacity:.38;cursor:not-allowed;background:#F0ECE6}
+.tool-card.on-cd{opacity:.5;cursor:not-allowed}
+.tool-card.new-unlock{border-color:#E8960A;animation:pulse-gold .7s ease 5}
+@keyframes pulse-gold{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 4px rgba(232,150,10,0.35)}}
+.tool-emoji{font-size:26px;margin-bottom:4px}
+.tool-name{font-weight:800;font-size:13px}
+.tool-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.tool-costs{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.cc{font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px}
+.cc-bud{background:#DFF5EC;color:#0F5E35}
+.cc-man{background:#FFF0CC;color:#7A4E00}
+.cc-free{background:#E5F0FF;color:#0E3A8B}
+.cc-cd{background:#FFE0DC;color:#8B1010}
+.lock-badge,.new-badge{position:absolute;top:6px;right:7px;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:800}
+.lock-badge{background:#E8E0D8;color:#7A6550}
+.new-badge{background:#E8960A;color:#1E1008;animation:bob .45s ease infinite alternate}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+
+/* ── ANNOUNCE BTN ── */
+.btn-announce{width:100%;padding:14px;background:#D94F2A;border:none;border-radius:13px;font-family:'Fredoka One',cursive;font-size:20px;color:white;cursor:pointer;transition:all .15s;box-shadow:0 4px 0 #8B2800}
+.btn-announce:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 0 #8B2800}
+.btn-announce:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #8B2800}
+.btn-announce:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+.all-reached{background:#DFF5EC;border:1.5px solid #1F8F5E;border-radius:9px;padding:8px 14px;font-size:12px;font-weight:800;color:#0F5E35;text-align:center;display:none;margin-top:6px}
+.all-reached.show{display:block}
+
+/* ── MAP ── */
+.map-wrap{position:relative;background:#BEE6B4;border-radius:var(--radius);border:2px solid #8ACC80;overflow:hidden;height:220px}
+@media(min-width:900px){.map-wrap{height:260px}}
+.map-flood{position:absolute;bottom:0;left:0;right:0;background:rgba(18,80,190,0.38);transition:height 1.2s ease;z-index:2;pointer-events:none}
+.map-road-h{position:absolute;background:#9E9E9E;height:13px;width:100%}
+.map-road-v{position:absolute;background:#9E9E9E;width:13px;height:100%}
+.map-bldg{position:absolute;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;border:1.5px solid rgba(0,0,0,0.12);z-index:1}
+.map-boat{position:absolute;font-size:18px;z-index:3;transition:all 1.2s ease;display:none}
+.dot{position:absolute;width:11px;height:11px;border-radius:50%;border:2px solid white;z-index:4;transition:background .5s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.dot-red{background:#E53935}
+.dot-green{background:#2E9C5A}
+.dot-gray{background:#9E9E9E}
+.dot-late{background:#FB8C00}
+.map-legend{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap}
+.legend-item{font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;color:var(--muted)}
+.legend-dot{width:10px;height:10px;border-radius:50%;border:1.5px solid white;flex-shrink:0;box-shadow:0 1px 2px rgba(0,0,0,0.15)}
+
+/* ── SATISFACTION ── */
+.sat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sat-label{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+.sat-score{font-size:22px;font-weight:800}
+.sat-bar-wrap{background:#EAE0D5;border-radius:20px;height:14px;overflow:hidden}
+.sat-bar-fill{height:100%;border-radius:20px;transition:width .6s ease,background .6s}
+.complaints-row{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--muted);font-weight:700}
+
+/* ── FEED ── */
+.feed-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;max-height:90px;overflow-y:auto;font-size:12px;line-height:1.7;color:var(--muted)}
+.fl{padding:1px 0;border-bottom:.5px solid var(--border)}
+.fl:last-child{border:none}
+.fg{color:#0F5E35;font-weight:700}.fb{color:#8B1010;font-weight:700}.fi{color:#1A5FA8;font-weight:700}.fc{color:#6B3FA0;font-weight:700}
+
+/* ── PROG DOTS ── */
+.prog-dots{display:flex;gap:8px;justify-content:center;padding:4px 0}
+.pdot{width:10px;height:10px;border-radius:50%;background:#D8CFC7;transition:all .3s}
+.pdot.done{background:#1F8F5E}
+.pdot.active{background:#E8960A;transform:scale(1.25)}
+
+/* ── ROUND END ── */
+#s-roundend{background:var(--bg);align-items:center;justify-content:center;padding:20px}
+.roundend-card{background:var(--card);border-radius:20px;padding:24px;max-width:500px;width:100%;box-shadow:var(--shadow)}
+.re-score{text-align:center;margin:12px 0}
+.re-big{font-family:'Fredoka One',cursive;font-size:72px;line-height:1}
+.re-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.rstat{background:var(--bg);border-radius:9px;padding:9px;text-align:center;border:1px solid var(--border)}
+.rstat .rv{font-size:20px;font-weight:800}
+.rstat .rl{font-size:11px;color:var(--muted);margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.re-verdict{border-radius:12px;padding:12px 16px;font-size:13px;font-weight:700;text-align:center;margin:10px 0}
+.re-verdict.pass{background:#DFF5EC;border:1.5px solid #1F8F5E;color:#0F5E35}
+.re-verdict.fail{background:#FFE0DC;border:1.5px solid #C4261A;color:#8B1010}
+.unlock-box{background:linear-gradient(135deg,#102852,#0B4D7A);color:white;border-radius:13px;padding:14px;margin:10px 0;text-align:center}
+.unlock-emoji{font-size:34px;margin-bottom:6px}
+.carryover-box{background:#DFF5EC;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:700;color:#0F5E35;margin:8px 0;border:1px solid #9FE1CB}
+.btn-continue{width:100%;margin-top:12px;padding:14px;background:#D94F2A;border:none;border-radius:13px;font-family:'Fredoka One',cursive;font-size:22px;color:white;cursor:pointer;box-shadow:0 4px 0 #8B2800;transition:all .15s}
+.btn-continue:hover{transform:translateY(-1px);box-shadow:0 6px 0 #8B2800}
+
+/* ── FINAL ── */
+#s-final{background:linear-gradient(145deg,#102852 0%,#0B4D7A 50%,#124D35 100%);align-items:center;justify-content:center;padding:20px;min-height:100vh}
+.final-card{background:rgba(255,255,255,0.10);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:26px;max-width:500px;width:100%;color:white}
+.final-verdict-banner{border-radius:12px;padding:16px;text-align:center;margin-bottom:16px}
+.final-verdict-banner.win{background:rgba(31,143,94,0.3);border:1.5px solid rgba(93,232,160,0.5)}
+.final-verdict-banner.lose{background:rgba(196,38,26,0.3);border:1.5px solid rgba(255,144,144,0.5)}
+.final-verdict-emoji{font-size:44px;margin-bottom:6px}
+.final-verdict-title{font-family:'Fredoka One',cursive;font-size:28px}
+.final-big{text-align:center;margin:10px 0}
+.fbig{font-family:'Fredoka One',cursive;font-size:68px;line-height:1}
+.round-scores{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}
+.rscore-box{background:rgba(255,255,255,0.14);border-radius:9px;padding:9px 4px;text-align:center}
+.rscore-box .rv{font-size:18px;font-weight:800}
+.rscore-box .rl{font-size:10px;opacity:.7;margin-top:2px;font-weight:700}
+.lb-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.14)}
+.lb-row:last-child{border:none}
+.lb-rank{font-family:'Fredoka One',cursive;font-size:15px;min-width:24px;color:#FFD476}
+.lb-name{flex:1;font-size:13px;font-weight:700}
+.lb-score{font-size:14px;font-weight:800;color:#7DEBB8}
+.lb-win{font-size:11px;background:rgba(31,143,94,0.4);border-radius:20px;padding:1px 8px;color:#7DEBB8;font-weight:800}
+.lb-me{background:rgba(232,150,10,0.2);border-radius:7px;padding:0 7px}
+.lbsec-title{font-family:'Fredoka One',cursive;font-size:16px;margin:12px 0 7px;opacity:.9}
+.btn-again{width:100%;margin-top:10px;padding:13px;background:#E8960A;border:none;border-radius:12px;font-family:'Fredoka One',cursive;font-size:18px;color:#1E1008;cursor:pointer}
+.btn-share{width:100%;margin-top:7px;padding:11px;background:rgba(255,255,255,0.18);border:none;border-radius:12px;font-family:'Fredoka One',cursive;font-size:16px;color:white;cursor:pointer}
+
+/* ── FLOOD OVERLAY ── */
+.flood-alert{position:fixed;inset:0;background:rgba(8,28,90,0.92);z-index:1000;display:none;align-items:center;justify-content:center;flex-direction:column;color:white;text-align:center;padding:24px}
+.flood-alert.show{display:flex}
+.flood-alert h2{font-family:'Fredoka One',cursive;font-size:36px;margin:12px 0 8px}
+.flood-alert p{font-size:14px;opacity:.9;margin-bottom:20px;line-height:1.6;max-width:380px}
+.btn-flood{padding:14px 36px;background:#E8960A;border:none;border-radius:12px;font-family:'Fredoka One',cursive;font-size:20px;color:#1E1008;cursor:pointer}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:#1E1008;color:white;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:700;opacity:0;transition:all .25s;z-index:2000;text-align:center;max-width:92vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="flood-alert" id="flood-alert">
+  <div style="font-size:60px">🌊</div>
+  <h2 id="flood-title">BABALA! Baha na!</h2>
+  <p id="flood-body">Biglang bumaha! I-announce ang evacuation ngayon na. Gamitin ang CommUnity App!</p>
+  <button class="btn-flood" id="flood-btn" onclick="dismissFlood()">Sige na, Kapitan!</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════ INTRO ══════════════ -->
+<div class="screen active" id="s-intro">
+  <div class="intro-wrap">
+    <div style="text-align:center;padding:16px 0 8px">
+      <div style="font-size:56px;margin-bottom:6px">📣</div>
+      <div class="intro-badge" id="intro-badge">⚡ 60 segundo bawat round · 3 Rounds</div>
+      <h1 class="intro-title">Announce It!</h1>
+      <p class="intro-sub" id="intro-sub">Barangay Kapitan Simulator</p>
+    </div>
+    <div class="intro-card">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button class="lang-btn" onclick="toggleLang()" id="intro-lang-btn">Switch to English</button>
+      </div>
+      <div class="comic-panel">
+        <div class="spk" id="cp1-spk">Ang Sitwasyon</div>
+        <p id="cp1-body">Ikaw ang bagong <strong>Barangay Kapitan</strong> ng Brgy. Del Monte. Mag-announce sa mga residente bago pa maging huli ang lahat, <strong>60 segundo</strong> ka lang per round!</p>
+      </div>
+      <div class="comic-panel green">
+        <div class="spk" id="cp2-spk">Tools</div>
+        <p id="cp2-body"><strong>Flyer + Megaphone</strong> ay available agad. Sa Round 2, ma-unlock ang <strong>Social Media</strong>. Sa Round 3, ang <strong>CommUnity App</strong>, pinakamalakas.</p>
+      </div>
+      <div class="comic-panel red">
+        <div class="spk" id="cp3-spk">Win Condition</div>
+        <p id="cp3-body">Kailangan ng <strong>80%+ average satisfaction</strong> para manalo. Mag-expire ang events at magrereklamo ang mga nalagpasan, maingat mag-manage ng budget at manpower!</p>
+      </div>
+      <div style="font-size:11px;font-weight:800;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px" id="wc-header">🏆 Para Manalo, PAREHONG kailangan:</div>
+      <div class="win-conditions">
+        <div class="win-cond">
+          <div class="wc-val">90%</div>
+          <div class="wc-label" id="wc1-label">Satisfaction</div>
+          <div class="wc-desc" id="wc1-desc">Average sa 3 rounds. Bawat reklamo = -2pts.</div>
+        </div>
+        <div class="win-cond">
+          <div class="wc-val">50%</div>
+          <div class="wc-label" id="wc2-label">Efficiency</div>
+          <div class="wc-desc" id="wc2-desc">Kalahati ng budget kailangan manatili. Huwag mag-aksaya!</div>
+        </div>
+      </div>
+      <label class="name-lbl" id="name-lbl">Pangalan mo, Kapitan:</label>
+      <input type="text" class="name-inp" id="player-name" maxlength="20" placeholder="Ilagay ang pangalan...">
+      <button class="btn-start" id="btn-start" onclick="startGame()">Simulan na! 🏛️</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ GAME ══════════════ -->
+<div class="screen" id="s-game">
+  <div class="hud">
+    <div class="hud-section" style="border-right:1px solid rgba(255,255,255,0.1)">
+      <div class="hud-title" id="hud-title">Round 1</div>
+    </div>
+    <div class="hud-section">
+      <div class="hud-chip bud">💰 <span id="hud-bud">600</span></div>
+    </div>
+    <div class="hud-section">
+      <div class="hud-chip man">👷 <span id="hud-man">4</span></div>
+    </div>
+    <div class="hud-section">
+      <div class="hud-chip com">😤 <span id="hud-com">0</span></div>
+    </div>
+    <div class="hud-section" style="flex-direction:column;gap:2px;align-items:center">
+      <div class="hud-timer" id="hud-timer">60</div>
+      <div style="font-size:9px;opacity:.55;letter-spacing:.5px;text-transform:uppercase;font-weight:800">segundos</div>
+    </div>
+    <div class="hud-section">
+      <button class="lang-btn" onclick="toggleLang()" id="game-lang-btn">EN</button>
+    </div>
+  </div>
+
+  <div class="game-body">
+    <div class="game-col-left">
+      <div class="prog-dots" id="prog-dots"></div>
+
+      <div class="narrative">
+        <div class="round-badge" id="round-badge">Round 1 ng 3</div>
+        <p id="round-nar"></p>
+        <div class="carryover-banner" id="carryover-banner"></div>
+      </div>
+
+      <div class="quota-bar-wrap">
+        <div class="quota-row">
+          <span class="quota-label" id="qbar-lbl">Kasiyahan</span>
+          <span class="quota-val" id="qbar-val">100%</span>
+        </div>
+        <div class="quota-track">
+          <div class="quota-fill" id="qbar-fill" style="width:100%;background:#1F8F5E"></div>
+          <div class="quota-target-line" id="qbar-target" style="left:90%"></div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;font-weight:700;text-align:right" id="qbar-hint">Target: 80%+ para manalo</div>
+      </div>
+
+      <div class="day-card">
+        <div class="day-num-wrap">
+          <div class="day-lbl-sm" id="day-lbl">ARAW</div>
+          <div class="day-num">Araw <span id="day-num">1</span></div>
+        </div>
+        <div class="day-info-col" id="day-info"></div>
+        <button class="btn-nextday" id="btn-nextday" onclick="nextDay()">Susunod ▶</button>
+      </div>
+
+      <div>
+        <div class="sec-title" id="ev-title">📋 Mga Events</div>
+        <div id="event-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="sat-header">
+          <span class="sat-label" id="sat-lbl">Satisfaction</span>
+          <span class="sat-score" id="sat-score">100%</span>
+        </div>
+        <div class="sat-bar-wrap"><div class="sat-bar-fill" id="sat-bar" style="width:100%;background:#1F8F5E"></div></div>
+        <div class="complaints-row">
+          <span id="complaint-lbl">Reklamo: <strong id="complaint-count">0</strong></span>
+          <span style="margin-left:auto" id="complaint-penalty">Bawat reklamo = -2 puntos</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-title" id="feed-title">💬 Activity Feed</div>
+        <div class="feed-box" id="feed-box"></div>
+      </div>
+    </div>
+
+    <div class="game-col-right">
+      <div>
+        <div class="sec-title" id="tool-title">🛠 Paraan ng Announcement</div>
+        <div class="tool-grid" id="tool-grid"></div>
+      </div>
+
+      <div>
+        <button class="btn-announce" id="btn-announce" onclick="doAnnounce()">📣 I-Announce!</button>
+        <div class="all-reached" id="all-reached-banner"></div>
+      </div>
+
+      <div>
+        <div class="sec-title">
+          🗺 <span id="map-title">Mapa ng Barangay</span>
+          <span style="font-size:11px;font-weight:700;color:var(--muted);margin-left:4px" id="map-count">0/0</span>
+        </div>
+        <div class="map-wrap" id="map-wrap">
+          <div class="map-flood" id="map-flood" style="height:0%"></div>
+          <div class="map-road-h" style="top:calc(50% - 6px)"></div>
+          <div class="map-road-v" style="left:calc(50% - 6px)"></div>
+          <div class="map-bldg" style="left:6%;top:9%;width:66px;height:38px;background:#BBDEFB;color:#0D47A1">🏛️ Hall</div>
+          <div class="map-bldg" style="left:62%;top:9%;width:64px;height:36px;background:#FFF9C4;color:#F57F17">🏫 School</div>
+          <div class="map-bldg" style="left:6%;top:63%;width:60px;height:36px;background:#F8BBD0;color:#880E4F">⛪ Simbahan</div>
+          <div class="map-bldg" style="left:63%;top:63%;width:66px;height:36px;background:#C8E6C9;color:#1B5E20">🏪 Palengke</div>
+          <div class="map-boat" id="boat1" style="left:28%;top:66%">🚣</div>
+          <div class="map-boat" id="boat2" style="left:54%;top:42%">⛵</div>
+        </div>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#2E9C5A"></div><span id="leg1">Naabutan</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:#E53935"></div><span id="leg2">Hindi pa</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:#FB8C00"></div><span id="leg3">Huli</span></div>
+          <div class="legend-item"><div class="legend-dot" style="background:#9E9E9E"></div><span id="leg4">Missed</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ ROUND END ══════════════ -->
+<div class="screen" id="s-roundend" style="background:var(--bg);align-items:center;justify-content:center;padding:20px">
+  <div class="roundend-card">
+    <div id="roundend-content"></div>
+    <button class="btn-continue" id="btn-continue" onclick="continueGame()">Magpatuloy</button>
+  </div>
+</div>
+
+<!-- ══════════════ FINAL ══════════════ -->
+<div class="screen" id="s-final">
+  <div style="width:100%;max-width:500px;margin:0 auto;padding:20px">
+    <div class="final-card">
+      <div class="final-verdict-banner" id="final-banner">
+        <div class="final-verdict-emoji" id="final-emoji">🎉</div>
+        <div class="final-verdict-title" id="final-title">Tapos na!</div>
+        <div style="font-size:13px;opacity:.8;margin-top:4px" id="final-sub"></div>
+      </div>
+      <div class="final-big">
+        <div class="fbig" id="final-score">0%</div>
+        <div style="font-size:13px;opacity:.7;margin-top:4px" id="final-score-lbl">average satisfaction</div>
+      </div>
+      <div class="round-scores" id="round-scores"></div>
+      <div style="font-size:12px;opacity:.65;margin:6px 0 10px;font-weight:700;text-align:center" id="final-efficiency"></div>
+      <div class="lbsec-title">🏆 Leaderboard</div>
+      <div id="lb-list"></div>
+      <button class="btn-again" onclick="resetGame()" id="btn-again">Maglaro Ulit! 🔄</button>
+      <button class="btn-share" onclick="shareScore()" id="btn-share">I-share ang Score</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// LANGUAGE
+// ══════════════════════════════════════════════
+let lang = 'tl';
+
+const LANG = {
+  tl:{
+    langBtn:'Switch to English',langBtnShort:'EN',
+    badge:'⚡ 60 segundo bawat round · 3 Rounds',
+    introSub:'Barangay Kapitan Simulator',
+    cp1spk:'Ang Sitwasyon',cp1:'Ikaw ang bagong <strong>Barangay Kapitan</strong> ng Brgy. Del Monte. Mag-announce sa mga residente bago pa maging huli ang lahat, <strong>60 segundo</strong> ka lang per round!',
+    cp2spk:'Tools',cp2:'<strong>Flyer + Megaphone</strong> ay available agad. Sa Round 2, ma-unlock ang <strong>Social Media</strong>. Sa Round 3, ang <strong>CommUnity App</strong>, pinakamalakas.',
+    cp3spk:'Win Condition',cp3:'Kailangan ng <strong>90%+ satisfaction</strong> AT <strong>50%+ budget efficiency</strong> para manalo. Huwag mag-aksaya ng budget! Mag-expire ang events at magrereklamo ang mga nalagpasan!',
+    wcHeader:'🏆 Para Manalo, PAREHONG kailangan:',
+    wc1Label:'Satisfaction',wc1Desc:'Average sa 3 rounds. Bawat reklamo = -2pts.',
+    wc2Label:'Efficiency',wc2Desc:'Kalahati ng budget kailangan manatili. Huwag mag-aksaya!',
+    nameLbl:'Pangalan mo, Kapitan:',nameHint:'Ilagay ang pangalan...',
+    btnStart:'Simulan na! 🏛️',
+    dayLbl:'ARAW',dayPrefix:'Araw',dayInfo:'{left} aksyon natitira · Manpower: {mp}',
+    btnNextday:'Susunod ▶',btnAnnounce:'📣 I-Announce!',
+    evTitle:'📋 Mga Events',toolTitle:'🛠 Paraan ng Announcement',
+    mapTitle:'Mapa ng Barangay',
+    leg1:'Naabutan',leg2:'Hindi pa',leg3:'Huli',leg4:'Missed',
+    satLbl:'Satisfaction',complaintLbl:'Reklamo: ',complaintPenalty:'Bawat reklamo = -2 puntos',
+    feedTitle:'💬 Activity Feed',roundBadge:'Round {r} ng 3',
+    qbarLbl:'Kasiyahan',qbarHint:'Target: 90%+ para manalo',
+    carryoverMsg:'Carryover: +💰{b}',
+    allReached:'Lahat naabutan na! Mag-next day o end ng round.',
+    feedEmpty:'Handa ka na, Kapitan? Simulan ang iyong araw!',
+    feedDay:'Araw {d}, {a} aksyon available',
+    feedTool:'{e} {name}: +{n} naabutan ({t}/{max} total)',
+    feedApp:'CommUnity App: {max} lahat naabutan INSTANT!',
+    feedChismis:'Chismis: +{n} bagong nakaalam',
+    feedExpire:'{name} expired! {n} residente ang hindi nakaalam!',
+    feedExpireZero:'{name}, lahat naabutan bago mag-expire!',
+    toastNoTool:'Piliin muna ang tool!',
+    toastNoActions:'Wala nang aksyon! Mag-next day.',
+    toastNoBudget:'Hindi sapat ang budget! Kailangan: ₱{c}',
+    toastNoMan:'Hindi sapat ang manpower! Kailangan: {c}',
+    toastCooldown:'Cooldown pa, {d} araw na lang!',
+    toastLocked:'Naka-lock pa ang tool na ito!',
+    toastUsed:'+{n} residente ang naabutan!',
+    toastNone:'Walang bago, subukan ulit!',
+    toastExpire:'{name} expired! {n} nalagpasan!',
+    toolLocked:'Naka-lock',toolCooldown:'{d}d cooldown',toolNew:'BAGO!',
+    daysCrit:'{d} araw na lang!',daysWarn:'{d} araw',daysOk:'{d} araw pa',daysDone:'Lahat done!',daysExp:'Expired!',
+    reTitle:'{name}',reSatLabel:'satisfaction score',
+    reInformed:'Naabutan',reComplaints:'Reklamo',reSpent:'Nagastos',
+    reFeedback80:'Napakahusay! Masaya ang komunidad!',reFeedback60:'Magaling! May konting kulang pa.',
+    reFeedback40:'Pwede na... Maraming reklamo. Subukan pa!',reFeedback0:'Ay nako! Dapat gumamit ng mas magandang tools.',
+    rePass:'✅ PASSED! (90%+) Patuloy ka sa susunod na round.',reFail:'❌ FAILED. Kulang sa 90% satisfaction.',
+    reUnlock:'Na-unlock ang bagong tool!',
+    reCarryover:'Carryover sa susunod: +💰{b}',
+    btnContinue:'Susunod na Round →',btnFinal:'Tingnan ang Final Results 🏆',
+    finalWinTitle:'NANALO KA!',finalLoseTitle:'GAME OVER',
+    finalWinSub:'Mahusay! 90%+ satisfaction at 50%+ efficiency, perpektong Kapitan!',
+    finalLoseSub:'Hindi naabot ang 90% satisfaction o 50% efficiency. Subukan ulit!',
+    finalScoreLbl:'average satisfaction',
+    efficiencyMsg:'Budget efficiency: {pct}% (₱{spent} ang ginamit sa ₱{total})',
+    efficiencyWin:'✅ Efficiency: {pct}% (target: 50%+)',
+    efficiencyFail:'❌ Efficiency: {pct}% (kailangan: 50%+)',
+    lbEmpty:'Wala pang scores. Maging una!',
+    btnAgain:'Maglaro Ulit! 🔄',btnShare:'I-share ang Score',
+    shareMsg:'"{name}", {s}% satisfaction bilang Barangay Kapitan sa "Announce It!" {win}',
+    shareWin:'NANALO!',shareLose:'Subukan mo rin!',
+    floodTitle:'BABALA! Baha na!',
+    floodBody:'Biglang bumaha sa barangay! Kailangan mong i-announce ang evacuation ngayon na. Gamitin ang CommUnity App!',
+    floodBtn:'Sige na, Kapitan! 🚣',
+    feedFlood:'EMERGENCY: Bumabaha ang barangay! I-announce ang evacuation AGAD!',
+  },
+  en:{
+    langBtn:'Lumipat sa Filipino',langBtnShort:'FIL',
+    badge:'⚡ 60 seconds per round · 3 Rounds',
+    introSub:'Barangay Captain Simulator',
+    cp1spk:'The Situation',cp1:'You are the new <strong>Barangay Captain</strong> of Brgy. Del Monte. Announce important news to residents before it is too late, only <strong>60 seconds</strong> per round!',
+    cp2spk:'Tools',cp2:'<strong>Flyer + Megaphone</strong> available from the start. Round 2 unlocks <strong>Social Media</strong>. Round 3 unlocks the <strong>CommUnity App</strong>, the most powerful.',
+    cp3spk:'Win Condition',cp3:'You need <strong>90%+ satisfaction</strong> AND <strong>50%+ budget efficiency</strong> to win. Do not waste budget! Events expire and residents who miss out will complain!',
+    wcHeader:'🏆 To Win, You need BOTH:',
+    wc1Label:'Satisfaction',wc1Desc:'Average across 3 rounds. Each complaint = -2pts.',
+    wc2Label:'Efficiency',wc2Desc:'Half your budget must remain unspent. No spamming!',
+    nameLbl:'Your name, Captain:',nameHint:'Enter your name...',
+    btnStart:'Start Game! 🏛️',
+    dayLbl:'DAY',dayPrefix:'Day',dayInfo:'{left} actions left · Manpower: {mp}',
+    btnNextday:'Next Day ▶',btnAnnounce:'📣 Announce!',
+    evTitle:'📋 Current Events',toolTitle:'🛠 Announcement Method',
+    mapTitle:'Barangay Map',
+    leg1:'Informed',leg2:'Not yet',leg3:'Late',leg4:'Missed',
+    satLbl:'Satisfaction',complaintLbl:'Complaints: ',complaintPenalty:'Each complaint = -2 points',
+    feedTitle:'💬 Activity Feed',roundBadge:'Round {r} of 3',
+    qbarLbl:'Satisfaction',qbarHint:'Target: 90%+ to win',
+    carryoverMsg:'Carried over: +💰{b}',
+    allReached:'All residents reached! Next day or end round.',
+    feedEmpty:'Ready, Captain? Start your first day!',
+    feedDay:'Day {d}, {a} actions available',
+    feedTool:'{e} {name}: +{n} newly reached ({t}/{max} total)',
+    feedApp:'CommUnity App: ALL {max} residents reached INSTANTLY!',
+    feedChismis:'Word spread: +{n} more residents informed',
+    feedExpire:'{name} expired! {n} residents missed it!',
+    feedExpireZero:'{name}, everyone reached before expiry!',
+    toastNoTool:'Select a tool first!',
+    toastNoActions:'No actions left! Go to next day.',
+    toastNoBudget:'Not enough budget! Need: ₱{c}',
+    toastNoMan:'Not enough manpower! Need: {c}',
+    toastCooldown:'On cooldown, {d} more days!',
+    toastLocked:'This tool is still locked!',
+    toastUsed:'+{n} residents reached!',
+    toastNone:'Nobody new this time, try again!',
+    toastExpire:'{name} expired! {n} missed it!',
+    toolLocked:'Locked',toolCooldown:'{d}d cooldown',toolNew:'NEW!',
+    daysCrit:'{d} day(s) left!',daysWarn:'{d} days',daysOk:'{d} days left',daysDone:'All done!',daysExp:'Expired!',
+    reTitle:'{name}',reSatLabel:'satisfaction score',
+    reInformed:'Reached',reComplaints:'Complaints',reSpent:'Spent',
+    reFeedback80:'Outstanding! Your community is happy!',reFeedback60:'Good job! A few residents still missed out.',
+    reFeedback40:'Could be better... Too many complaints. Try harder!',reFeedback0:'Too many complaints. Use better tools next time.',
+    rePass:'✅ PASSED! (90%+) Move on to the next round.',reFail:'❌ FAILED. Under 90% satisfaction.',
+    reUnlock:'New tool unlocked!',
+    reCarryover:'Carrying over to next round: +💰{b}',
+    btnContinue:'Next Round →',btnFinal:'See Final Results 🏆',
+    finalWinTitle:'YOU WIN!',finalLoseTitle:'GAME OVER',
+    finalWinSub:'Outstanding! 90%+ satisfaction and 50%+ efficiency, perfect Captain!',
+    finalLoseSub:'Did not hit 90% satisfaction or 50% efficiency. Try again!',
+    finalScoreLbl:'average satisfaction',
+    efficiencyMsg:'Budget efficiency: {pct}% (₱{spent} used out of ₱{total})',
+    efficiencyWin:'✅ Efficiency: {pct}% (target: 50%+)',
+    efficiencyFail:'❌ Efficiency: {pct}% (need: 50%+)',
+    lbEmpty:'No scores yet. Be the first!',
+    btnAgain:'Play Again! 🔄',btnShare:'Share Score',
+    shareMsg:'"{name}", {s}% satisfaction as Barangay Captain in "Announce It!" {win}',
+    shareWin:'I WON!',shareLose:'Try it too!',
+    floodTitle:'WARNING! Flooding!',
+    floodBody:'The barangay is flooding! Announce evacuation immediately. Use the CommUnity App!',
+    floodBtn:'On it, Captain! 🚣',
+    feedFlood:'EMERGENCY: Flooding! Announce evacuation IMMEDIATELY!',
+  }
+};
+
+function L(key,vars={}){
+  const t=LANG[lang]||LANG.tl;
+  let s=(t[key]!==undefined)?t[key]:(LANG.tl[key]||key);
+  Object.entries(vars).forEach(([k,v])=>{s=s.replace(new RegExp('\\{'+k+'\\}','g'),v);});
+  return s;
+}
+
+function toggleLang(){
+  lang=(lang==='tl')?'en':'tl';
+  applyLangToUI();
+}
+
+function applyLangToUI(){
+  const s=id=>document.getElementById(id);
+  s('intro-lang-btn').textContent=L('langBtn');
+  if(s('game-lang-btn'))s('game-lang-btn').textContent=L('langBtnShort');
+  s('intro-badge').textContent=L('badge');
+  s('intro-sub').textContent=L('introSub');
+  s('cp1-spk').textContent=L('cp1spk');s('cp1-body').innerHTML=L('cp1');
+  s('cp2-spk').textContent=L('cp2spk');s('cp2-body').innerHTML=L('cp2');
+  s('cp3-spk').textContent=L('cp3spk');s('cp3-body').innerHTML=L('cp3');
+  if(s('wc-header'))s('wc-header').textContent=L('wcHeader');
+  if(s('wc1-label'))s('wc1-label').textContent=L('wc1Label');
+  if(s('wc1-desc'))s('wc1-desc').textContent=L('wc1Desc');
+  if(s('wc2-label'))s('wc2-label').textContent=L('wc2Label');
+  if(s('wc2-desc'))s('wc2-desc').textContent=L('wc2Desc');
+  s('name-lbl').textContent=L('nameLbl');
+  s('player-name').placeholder=L('nameHint');
+  s('btn-start').textContent=L('btnStart');
+  if(G&&G.round)renderAll();
+}
+
+// ══════════════════════════════════════════════
+// FIREBASE
+// ══════════════════════════════════════════════
+const FB='https://community-1f98e-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+async function fbPush(path,data){
+  try{await fetch(`${FB}/${path}.json`,{method:'POST',body:JSON.stringify(data)});}catch(e){}
+}
+async function fbGetLb(){
+  try{
+    const r=await fetch(`${FB}/game_lb_v4.json`);
+    const d=await r.json();
+    if(!d)return[];
+    return Object.values(d).sort((a,b)=>b.score-a.score||b.efficiency-a.efficiency).slice(0,10);
+  }catch(e){return[];}
+}
+
+// ══════════════════════════════════════════════
+// GAME DATA
+// ══════════════════════════════════════════════
+const TOOLS={
+  flyer:{
+    id:'flyer',
+    name:{tl:'Printed Flyers',en:'Printed Flyers'},
+    emoji:'📄',
+    desc:{tl:'I-post sa mga pader. Mura pero mabagal. Walang cooldown.',en:'Posted on walls. Cheap but limited. No cooldown.'},
+    budgetCost:50,manpowerCost:1,reach:0.25,cooldownDays:0
+  },
+  megaphone:{
+    id:'megaphone',
+    name:{tl:'Megaphone Car',en:'Megaphone Car'},
+    emoji:'🚗',
+    desc:{tl:'Nagdadaanan sa kalye. Malawak pero mahal at may 2-day cooldown.',en:'Drives through streets. Wide reach but costly, 2-day cooldown.'},
+    budgetCost:200,manpowerCost:2,reach:0.45,cooldownDays:2
+  },
+  social:{
+    id:'social',
+    name:{tl:'Social Media',en:'Social Media'},
+    emoji:'📱',
+    desc:{tl:'Facebook post. Mas malawak pero ₱125 at 2 manpower, 1-day cooldown.',en:'Facebook post. Wider reach but ₱125 and 2 manpower, 1-day cooldown.'},
+    budgetCost:125,manpowerCost:2,reach:0.55,cooldownDays:1
+  },
+  app:{
+    id:'app',
+    name:{tl:'CommUnity App',en:'CommUnity App'},
+    emoji:'📲',
+    desc:{tl:'Push + SMS sa LAHAT. ₱100 at 2 manpower, 2-day cooldown, gamitin nang matalino!',en:'Push + SMS to ALL. ₱100 and 2 manpower, 2-day cooldown, use it wisely!'},
+    budgetCost:100,manpowerCost:2,reach:1.0,cooldownDays:2
+  }
+};
+
+// Event-specific complaint messages
+const COMPLAINTS={
+  flood:{
+    tl:['Hindi ako nakahanda sa baha!','Bakit ngayon mo lang sinabi?! Nalagpasan na ang evacuation!','Hindi ko na-evacuate ang aking pamilya!','Wala man lang advance warning tungkol sa pagbabaha!','Ang daming nawasak dahil hindi kami naabutan ng balita!'],
+    en:['I was not prepared for the flood!','Why only now?! I missed the evacuation!','I could not evacuate my family in time!','No advance warning about the flooding!','So much damage because we were not informed!']
+  },
+  medical:{
+    tl:['Sayang! Hindi na ako nakapunta sa libreng check-up!','Bakit ngayon ko lang narinig ang tungkol sa bakuna?!','Hindi ko na nakuha ang libreng gamot para sa pamilya ko!','Kung naabutan lang ako nang mas maaga, nakapasok pa sana kami!','Akala ko wala naman, tapos may libre palang konsultasyon!'],
+    en:['Too late! I missed the free check-up!','Why did I only hear about the vaccine now?!','I could not get the free medicine for my family!','If I was informed earlier, we could have made it!','I had no idea about the free consultation!']
+  },
+  admin:{
+    tl:['Bakit ngayon mo lang sinabi?! Hindi na ako nakapunta!','Wala man lang nagsabi sa akin tungkol dito!','Di ko alam may ganoon pala, dapat sinabihan niyo kami nang maaga!','Nalagpasan na pala ang deadline, kaya hindi na ako nakapag-apply!','Huli na ang lahat, dapat mas maagang nag-announce!'],
+    en:['Why only now?! I could not make it!','Nobody told me about this!','I had no idea, you should have informed us earlier!','I missed the deadline because nobody told me!','Too late, you should have announced this much earlier!']
+  }
+};
+
+function getRandComplaint(type){
+  const pool=COMPLAINTS[type]||COMPLAINTS.admin;
+  const arr=pool[lang]||pool.tl;
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+const ROUNDS=[
+  {
+    id:1,
+    name:{tl:'Unang Hakbang',en:'First Steps'},
+    narrative:{
+      tl:'Bagong Kapitan ka. Mayroon kang Flyer at Megaphone Car. Mabilis kang mag-isip, 60 segundo lang ang round! I-manage ang budget at manpower nang maingat.',
+      en:'You are a new Captain. You have Flyers and the Megaphone Car. Think fast, only 60 seconds per round! Manage your budget and manpower carefully.'
+    },
+    days:4,actionsPerDay:3,budget:600,manpower:4,residentCount:18,
+    tools:['flyer','megaphone'],newTool:null,flood:false,
+    events:[
+      {id:'e1',name:{tl:'Libreng Bakuna',en:'Free Vaccination'},emoji:'💉',type:'medical',desc:{tl:'Libreng bakuna para sa buong pamilya, sa Hall lamang',en:'Free vaccines for the whole family, at the Hall only'},deadline:2,urgency:'high'},
+      {id:'e2',name:{tl:'Barangay Assembly',en:'Barangay Assembly'},emoji:'🏛️',type:'admin',desc:{tl:'Mandatory buwanang pulong para sa lahat ng pamilya',en:'Mandatory monthly meeting for all families'},deadline:3,urgency:'med'},
+      {id:'e3',name:{tl:'Senior Citizen ID',en:'Senior Citizen ID'},emoji:'👴',type:'admin',desc:{tl:'Pag-register ng Senior ID, deadline ngayong round',en:'Senior ID registration, deadline this round'},deadline:4,urgency:'low'}
+    ],
+    chismisChance:0.06,
+    unlockMsg:{tl:'Round 2 unlock: Social Media! Mas maraming maaabot pero kailangan ng 2 manpower at may 1-day cooldown.',en:'Round 2 unlock: Social Media! Reach more people but costs 2 manpower with a 1-day cooldown.'},
+    unlockTool:'social'
+  },
+  {
+    id:2,
+    name:{tl:'Social Media Age',en:'Social Media Age'},
+    narrative:{
+      tl:'Na-unlock na ang Social Media! Mas malawak ang coverage pero mahal sa manpower. May malapit na bagyo at scholarship deadline, mag-prioritize!',
+      en:'Social Media is unlocked! Wider coverage but heavy on manpower. A storm and scholarship deadline are approaching, prioritize wisely!'
+    },
+    days:4,actionsPerDay:3,budget:700,manpower:4,residentCount:24,
+    tools:['flyer','megaphone','social'],newTool:'social',flood:false,
+    events:[
+      {id:'e4',name:{tl:'Babala ng Bagyo',en:'Storm Warning'},emoji:'🌀',type:'flood',desc:{tl:'Signal 2 paparating, iwasan ang paglabas',en:'Signal 2 incoming, avoid going outdoors'},deadline:1,urgency:'critical'},
+      {id:'e5',name:{tl:'Scholarship Application',en:'Scholarship Application'},emoji:'📚',type:'admin',desc:{tl:'Mag-apply sa Hall bago mag-deadline',en:'Apply at the Hall before deadline'},deadline:3,urgency:'high'},
+      {id:'e6',name:{tl:'Livelihood Seminar',en:'Livelihood Seminar'},emoji:'💼',type:'admin',desc:{tl:'Libreng skills training para sa mga residente',en:'Free skills training for residents'},deadline:4,urgency:'med'}
+    ],
+    chismisChance:0.08,
+    unlockMsg:{tl:'Round 3 unlock: CommUnity App! Instant push notification sa lahat, kahit walang data! May 2-day cooldown, gamitin nang may estratehiya!',en:'Round 3 unlock: CommUnity App! Instant push to everyone, even without data! Has 2-day cooldown, use it strategically!'},
+    unlockTool:'app'
+  },
+  {
+    id:3,
+    name:{tl:'BAHA + CommUnity App!',en:'FLOOD + CommUnity App!'},
+    narrative:{
+      tl:'BABALA! Bumabaha! At na-unlock na ang CommUnity App, pinakamalakas na tool. May 2-day cooldown, gamitin nang may estratehiya!',
+      en:'WARNING! Flooding! And the CommUnity App is unlocked, the most powerful tool. It has a 2-day cooldown, use it strategically!'
+    },
+    days:4,actionsPerDay:4,budget:800,manpower:5,residentCount:30,
+    tools:['flyer','megaphone','social','app'],newTool:'app',flood:true,
+    events:[
+      {id:'e7',name:{tl:'EVACUATION ORDER',en:'EVACUATION ORDER'},emoji:'🚨',type:'flood',desc:{tl:'Umalis na sa mababang lugar, NGAYON NA!',en:'Leave low-lying areas, RIGHT NOW!'},deadline:1,urgency:'critical'},
+      {id:'e8',name:{tl:'Relief Distribution',en:'Relief Distribution'},emoji:'🍱',type:'flood',desc:{tl:'Pagbibigay ng relief sa evacuation center',en:'Relief goods at the evacuation center'},deadline:2,urgency:'high'},
+      {id:'e9',name:{tl:'Balik-Bahay Clearance',en:'Return-Home Clearance'},emoji:'🏠',type:'admin',desc:{tl:'Pwede nang umuwi pagkatapos ng inspection',en:'Safe to return home after inspection'},deadline:4,urgency:'med'}
+    ],
+    chismisChance:0.10,
+    unlockMsg:null,unlockTool:null
+  }
+];
+
+// ══════════════════════════════════════════════
+// TIMER
+// ══════════════════════════════════════════════
+let timerInterval=null;
+let timeLeft=60;
+const ROUND_TIME=60;
+
+function startTimer(){
+  timeLeft=ROUND_TIME;
+  clearInterval(timerInterval);
+  updateTimerDisplay();
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    updateTimerDisplay();
+    if(timeLeft<=0){
+      clearInterval(timerInterval);
+      endRound();
+    }
+  },1000);
+}
+
+function pauseTimer(){clearInterval(timerInterval);}
+
+function updateTimerDisplay(){
+  const el=document.getElementById('hud-timer');
+  if(!el)return;
+  el.textContent=Math.max(0,timeLeft);
+  el.className='hud-timer'+(timeLeft<=10?' crit':timeLeft<=20?' warn':'');
+}
+
+// ══════════════════════════════════════════════
+// GAME STATE
+// ══════════════════════════════════════════════
+let G={};
+
+function initRound(roundIdx,carryBudget=0){
+  const rd=ROUNDS[roundIdx];
+  const events=rd.events.map(e=>({
+    ...e,
+    informed:new Set(),
+    lateSet:new Set(),
+    missedSet:new Set(),
+    expired:false
+  }));
+  const cooldowns={};
+  Object.keys(TOOLS).forEach(k=>cooldowns[k]=0);
+
+  G={
+    playerName:G.playerName||'Kapitan',
+    roundIdx,
+    round:rd,
+    residents:buildResidents(rd.residentCount),
+    events,
+    day:1,
+    maxDays:rd.days,
+    actionsLeft:rd.actionsPerDay,
+    budget:rd.budget+carryBudget,
+    startBudget:rd.budget+carryBudget,
+    manpower:rd.manpower,
+    baseMPPerDay:rd.manpower,
+    carryBudget,
+    cooldowns,
+    complaints:0,
+    satisfaction:100,
+    roundScores:G.roundScores||[],
+    totalBudgetStart:(G.totalBudgetStart||0)+rd.budget,
+    totalBudgetSpent:G.totalBudgetSpent||0,
+    feed:[],
+    floodActive:rd.flood||false,
+    floodShown:false
+  };
+}
+
+function buildResidents(n){
+  return Array.from({length:n},(_,i)=>({
+    id:i,
+    x:5+Math.random()*88,
+    y:5+Math.random()*88,
+    chismisR:8+Math.random()*12
+  }));
+}
+
+// ══════════════════════════════════════════════
+// SCREENS
+// ══════════════════════════════════════════════
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+name).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ══════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════
+function startGame(){
+  G={};
+  G.playerName=document.getElementById('player-name').value.trim()||'Kapitan';
+  G.roundScores=[];
+  G.totalBudgetStart=0;
+  G.totalBudgetSpent=0;
+  initRound(0,0);
+  showScreen('game');
+  renderAll();
+  startTimer();
+  if(G.floodActive)setTimeout(showFloodAlert,800);
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+function renderAll(){
+  const rd=G.round;
+  document.getElementById('hud-title').textContent=rd.name[lang];
+  document.getElementById('hud-bud').textContent=G.budget;
+  document.getElementById('hud-man').textContent=G.manpower;
+  document.getElementById('hud-com').textContent=G.complaints;
+  document.getElementById('game-lang-btn').textContent=L('langBtnShort');
+
+  // Prog dots
+  document.getElementById('prog-dots').innerHTML=ROUNDS.map((_,i)=>
+    `<div class="pdot${i<G.roundIdx?' done':i===G.roundIdx?' active':''}"></div>`
+  ).join('');
+
+  document.getElementById('round-badge').textContent=L('roundBadge',{r:G.roundIdx+1});
+  document.getElementById('round-nar').textContent=rd.narrative[lang];
+
+  // Carryover banner
+  const cb=document.getElementById('carryover-banner');
+  if(G.carryBudget>0){
+    cb.textContent=L('carryoverMsg',{b:G.carryBudget});
+    cb.style.display='block';
+  } else {cb.style.display='none';}
+
+  // Quota bar
+  document.getElementById('qbar-lbl').textContent=L('qbarLbl');
+  document.getElementById('qbar-hint').textContent=L('qbarHint');
+  const sat=Math.max(0,Math.min(100,G.satisfaction));
+  document.getElementById('qbar-val').textContent=sat+'%';
+  document.getElementById('qbar-val').style.color=sat>=90?'#1F8F5E':sat>=70?'#C8700A':'#C4261A';
+  const qfill=document.getElementById('qbar-fill');
+  qfill.style.width=sat+'%';
+  qfill.style.background=sat>=90?'#1F8F5E':sat>=70?'#E8960A':'#C4261A';
+
+  // Day
+  document.getElementById('day-lbl').textContent=L('dayLbl');
+  document.getElementById('day-num').textContent=G.day;
+  document.getElementById('day-info').innerHTML=L('dayInfo',{left:G.actionsLeft,mp:G.manpower});
+  document.getElementById('btn-nextday').textContent=L('btnNextday');
+  document.getElementById('btn-announce').textContent=L('btnAnnounce');
+
+  // Titles
+  document.getElementById('ev-title').innerHTML=L('evTitle');
+  document.getElementById('tool-title').innerHTML=L('toolTitle');
+  document.getElementById('map-title').textContent=L('mapTitle');
+  document.getElementById('leg1').textContent=L('leg1');
+  document.getElementById('leg2').textContent=L('leg2');
+  document.getElementById('leg3').textContent=L('leg3');
+  document.getElementById('leg4').textContent=L('leg4');
+  document.getElementById('sat-lbl').textContent=L('satLbl');
+  document.getElementById('complaint-lbl').innerHTML=L('complaintLbl')+'<strong id="complaint-count">'+G.complaints+'</strong>';
+  document.getElementById('complaint-penalty').textContent=L('complaintPenalty');
+  document.getElementById('feed-title').textContent=L('feedTitle');
+
+  renderEvents();
+  renderTools();
+  renderMap();
+  renderSat();
+  renderFeed();
+  checkAllReached();
+}
+
+function renderEvents(){
+  document.getElementById('event-list').innerHTML=G.events.map(ev=>{
+    const daysLeft=ev.deadline-G.day+1;
+    const informed=ev.informed.size;
+    const total=G.residents.length;
+    const allDone=informed>=total;
+    let cls='',pillCls='',pillTxt='';
+    if(ev.expired){cls='expired';pillCls='dp-exp';pillTxt=L('daysExp');}
+    else if(allDone){cls='done';pillCls='dp-done';pillTxt=L('daysDone');}
+    else if(ev.urgency==='critical'&&daysLeft<=1){cls='urgency-critical';pillCls='dp-crit';pillTxt=L('daysCrit',{d:daysLeft});}
+    else if(daysLeft<=1){cls='urgency-critical';pillCls='dp-crit';pillTxt=L('daysCrit',{d:daysLeft});}
+    else if(daysLeft<=2){cls='urgency-high';pillCls='dp-high';pillTxt=L('daysWarn',{d:daysLeft});}
+    else if(daysLeft<=3){cls='urgency-med';pillCls='dp-warn';pillTxt=L('daysWarn',{d:daysLeft});}
+    else{pillCls='dp-ok';pillTxt=L('daysOk',{d:daysLeft});}
+    const pct=Math.round(informed/total*100);
+    return `<div class="event-item ${cls}">
+      <div class="ev-icon">${ev.emoji}</div>
+      <div style="flex:1;min-width:0">
+        <div class="ev-name">${ev.name[lang]}</div>
+        <div class="ev-desc">${ev.desc[lang]}</div>
+        <div class="ev-meta">
+          <span class="days-pill ${pillCls}">${pillTxt}</span>
+          <span class="ev-pct">${informed}/${total} (${pct}%)</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderTools(){
+  const available=G.round.tools;
+  document.getElementById('tool-grid').innerHTML=Object.keys(TOOLS).map(tid=>{
+    const t=TOOLS[tid];
+    const locked=!available.includes(tid);
+    const cd=G.cooldowns[tid]||0;
+    const onCd=cd>0;
+    const isNew=tid===G.round.newTool;
+    let cls=locked?'locked':onCd?'on-cd':G.selectedTool===tid?'sel':'';
+    if(isNew&&!locked)cls+=' new-unlock';
+    return `<div class="tool-card ${cls}" id="tc-${tid}" onclick="selectTool('${tid}')">
+      ${locked?`<div class="lock-badge">${L('toolLocked')}</div>`:''}
+      ${isNew&&!locked?`<div class="new-badge">${L('toolNew')}</div>`:''}
+      <div class="tool-emoji">${t.emoji}</div>
+      <div class="tool-name">${t.name[lang]}</div>
+      <div class="tool-desc">${t.desc[lang]}</div>
+      <div class="tool-costs">
+        ${t.budgetCost>0?`<span class="cc cc-bud">💰 ₱${t.budgetCost}</span>`:''}
+        ${t.manpowerCost>0?`<span class="cc cc-man">👷 ${t.manpowerCost}</span>`:''}
+        ${t.budgetCost===0&&t.manpowerCost===0?`<span class="cc cc-free">FREE</span>`:''}
+        ${onCd?`<span class="cc cc-cd">${L('toolCooldown',{d:cd})}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectTool(tid){
+  if(!G.round.tools.includes(tid)){toast(L('toastLocked'));return;}
+  if(G.cooldowns[tid]>0){toast(L('toastCooldown',{d:G.cooldowns[tid]}));return;}
+  G.selectedTool=tid;
+  renderTools();
+}
+
+function renderMap(){
+  const wrap=document.getElementById('map-wrap');
+  wrap.querySelectorAll('.dot').forEach(d=>d.remove());
+
+  const informedIds=new Set();
+  const lateIds=new Set();
+  const missedIds=new Set();
+  G.events.forEach(ev=>{
+    ev.informed.forEach(rid=>informedIds.add(rid));
+    ev.lateSet.forEach(rid=>lateIds.add(rid));
+    ev.missedSet.forEach(rid=>missedIds.add(rid));
+  });
+
+  const totalInformed=informedIds.size;
+  document.getElementById('map-count').textContent=`${totalInformed}/${G.residents.length}`;
+
+  G.residents.forEach(r=>{
+    const dot=document.createElement('div');
+    dot.className='dot';
+    dot.style.left=r.x+'%';
+    dot.style.top=r.y+'%';
+    if(missedIds.has(r.id))dot.classList.add('dot-gray');
+    else if(lateIds.has(r.id))dot.classList.add('dot-late');
+    else if(informedIds.has(r.id))dot.classList.add('dot-green');
+    else dot.classList.add('dot-red');
+    wrap.appendChild(dot);
+  });
+
+  // Flood visual
+  if(G.floodActive){
+    const floodPct=Math.min(55,(G.day-1)*10);
+    document.getElementById('map-flood').style.height=floodPct+'%';
+    document.getElementById('boat1').style.display=floodPct>10?'block':'none';
+    document.getElementById('boat2').style.display=floodPct>22?'block':'none';
+  } else {
+    // Make sure flood is cleared if not a flood round
+    document.getElementById('map-flood').style.height='0%';
+    document.getElementById('boat1').style.display='none';
+    document.getElementById('boat2').style.display='none';
+  }
+}
+
+function renderSat(){
+  const sat=Math.max(0,Math.min(100,G.satisfaction));
+  const el=document.getElementById('sat-score');
+  el.textContent=sat+'%';
+  el.style.color=sat>=90?'#1F8F5E':sat>=70?'#C8700A':'#C4261A';
+  const bar=document.getElementById('sat-bar');
+  bar.style.width=sat+'%';
+  bar.style.background=sat>=90?'#1F8F5E':sat>=70?'#E8960A':'#C4261A';
+  document.getElementById('complaint-count').textContent=G.complaints;
+}
+
+function renderFeed(){
+  const box=document.getElementById('feed-box');
+  if(!G.feed.length){box.innerHTML=`<div class="fl fi">${L('feedEmpty')}</div>`;return;}
+  box.innerHTML=G.feed.slice(0,18).map(f=>`<div class="fl f${f.t}">${f.m}</div>`).join('');
+}
+
+function addFeed(msg,t='i'){G.feed.unshift({m:msg,t});}
+
+function checkAllReached(){
+  const active=G.events.filter(ev=>!ev.expired);
+  const banner=document.getElementById('all-reached-banner');
+  if(!active.length){banner.classList.remove('show');return;}
+  const allDone=active.every(ev=>G.residents.every(r=>ev.informed.has(r.id)));
+  if(allDone){banner.textContent=L('allReached');banner.classList.add('show');}
+  else{banner.classList.remove('show');}
+}
+
+// ══════════════════════════════════════════════
+// ANNOUNCE
+// ══════════════════════════════════════════════
+function doAnnounce(){
+  if(!G.selectedTool){toast(L('toastNoTool'));return;}
+  if(G.actionsLeft<=0){toast(L('toastNoActions'));return;}
+  if(G.cooldowns[G.selectedTool]>0){toast(L('toastCooldown',{d:G.cooldowns[G.selectedTool]}));return;}
+
+  const tool=TOOLS[G.selectedTool];
+  if(G.budget<tool.budgetCost){toast(L('toastNoBudget',{c:tool.budgetCost}));return;}
+  if(G.manpower<tool.manpowerCost){toast(L('toastNoMan',{c:tool.manpowerCost}));return;}
+
+  G.budget-=tool.budgetCost;
+  G.manpower-=tool.manpowerCost;
+  G.actionsLeft--;
+  G.totalBudgetSpent=(G.totalBudgetSpent||0)+tool.budgetCost;
+  if(tool.cooldownDays>0)G.cooldowns[G.selectedTool]=tool.cooldownDays;
+
+  const activeEvents=G.events.filter(ev=>!ev.expired);
+
+  // Snapshot unique-resident count BEFORE this action (to correctly calculate newly reached)
+  const countBefore=new Set(G.events.flatMap(ev=>[...ev.informed])).size;
+
+  if(G.selectedTool==='app'){
+    G.residents.forEach(r=>{activeEvents.forEach(ev=>{ev.informed.add(r.id);});});
+    const countAfter=new Set(G.events.flatMap(ev=>[...ev.informed])).size;
+    const newCount=countAfter-countBefore;
+    const total=G.residents.length;
+    addFeed(`📲 ${L('feedApp',{max:total})}`,'g');
+    toast(`📲 +${newCount} ${lang==='tl'?'naabutan!':'residents reached!'}`);
+  } else {
+    G.residents.forEach(r=>{
+      if(Math.random()<tool.reach){
+        activeEvents.forEach(ev=>{
+          ev.informed.add(r.id);
+        });
+      }
+    });
+    const countAfter=new Set(G.events.flatMap(ev=>[...ev.informed])).size;
+    const newCount=countAfter-countBefore;
+    addFeed(L('feedTool',{e:tool.emoji,name:tool.name[lang],n:newCount,t:countAfter,max:G.residents.length}),'i');
+    if(newCount>0)toast(L('toastUsed',{n:newCount}));
+    else toast(L('toastNone'));
+  }
+
+  updateSat();
+  renderAll();
+}
+
+function updateSat(){
+  G.satisfaction=Math.max(0,100-G.complaints*2);
+}
+
+// ══════════════════════════════════════════════
+// NEXT DAY
+// ══════════════════════════════════════════════
+function nextDay(){
+  if(G.day>=G.maxDays){endRound();return;}
+  G.day++;
+  G.actionsLeft=G.round.actionsPerDay;
+  // Manpower resets fully each day (strategic resource)
+  G.manpower=G.baseMPPerDay;
+
+  // Tick cooldowns
+  Object.keys(G.cooldowns).forEach(k=>{if(G.cooldowns[k]>0)G.cooldowns[k]--;});
+
+  // Check event expiry, complaints use exponential decay formula per resident
+  G.events.forEach(ev=>{
+    if(!ev.expired&&G.day>ev.deadline){
+      ev.expired=true;
+      let missed=0;
+      G.residents.forEach(r=>{
+        // Only fire if resident genuinely never heard about this event
+        if(!ev.informed.has(r.id)&&!ev.missedSet.has(r.id)){
+          ev.missedSet.add(r.id);
+          missed++;
+          // Exponential complaint formula: guaranteed 1st complaint,
+          // then P(2nd)=10%, P(3rd|2nd)=39.81%, etc., PER RESIDENT
+          let numComplaints=1;
+          let prob=0.10;
+          while(Math.random()<prob){
+            numComplaints++;
+            prob*=0.3981; // 10^(-0.4), each extra complaint is less likely
+          }
+          G.complaints+=numComplaints;
+          // Show a complaint message (throttled, not every resident)
+          if(Math.random()<0.35){
+            const q=getRandComplaint(ev.type||'admin');
+            addFeed(`😡 "${q}"`, 'b');
+          }
+        }
+      });
+      if(missed>0){
+        addFeed(L('feedExpire',{name:ev.name[lang],n:missed}),'b');
+        toast(L('toastExpire',{name:ev.name[lang],n:missed}));
+      } else {
+        addFeed(L('feedExpireZero',{name:ev.name[lang]}),'g');
+      }
+    }
+  });
+
+  doChismis();
+  updateSat();
+  addFeed(L('feedDay',{d:G.day,a:G.actionsLeft}),'i');
+
+  if(G.floodActive&&G.day===2&&!G.floodShown)showFloodAlert();
+
+  renderAll();
+}
+
+// ══════════════════════════════════════════════
+// CHISMIS
+// ══════════════════════════════════════════════
+function doChismis(){
+  const active=G.events.filter(ev=>!ev.expired);
+  if(!active.length)return;
+  let newCount=0;
+  G.residents.forEach(r=>{
+    active.forEach(ev=>{
+      if(ev.informed.has(r.id)){
+        G.residents.forEach(nb=>{
+          if(nb.id!==r.id&&!ev.informed.has(nb.id)){
+            const dist=Math.hypot(r.x-nb.x,r.y-nb.y);
+            if(dist<r.chismisR&&Math.random()<G.round.chismisChance){
+              ev.informed.add(nb.id);
+              newCount++;
+            }
+          }
+        });
+      }
+    });
+  });
+  if(newCount>0)addFeed(L('feedChismis',{n:newCount}),'c');
+}
+
+// ══════════════════════════════════════════════
+// ROUND END
+// ══════════════════════════════════════════════
+function endRound(){
+  pauseTimer();
+
+  const total=G.residents.length;
+  const informed=new Set(G.events.flatMap(ev=>[...ev.informed])).size;
+  const sat=Math.max(0,G.satisfaction);
+  const spent=G.startBudget-G.budget;
+
+  G.roundScores.push(sat);
+
+  const remainBudget=Math.max(0,G.budget);
+  const passed=sat>=90;
+  const nextRound=ROUNDS[G.roundIdx+1];
+  const medal=sat>=90?'🥇':sat>=80?'🥈':sat>=60?'🥉':'😓';
+  const fbKey=sat>=90?'reFeedback80':sat>=70?'reFeedback60':sat>=50?'reFeedback40':'reFeedback0';
+
+  let html=`
+    <div style="text-align:center;margin-bottom:10px">
+      <div style="font-size:38px">${medal}</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:17px;margin-top:4px">${G.round.name[lang]}</div>
+    </div>
+    <div class="re-score">
+      <div class="re-big" style="color:${sat>=90?'#1F8F5E':sat>=70?'#C8700A':'#C4261A'}">${sat}%</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">${L('reSatLabel')}</div>
+    </div>
+    <div class="re-stats">
+      <div class="rstat"><div class="rv">${informed}/${total}</div><div class="rl">${L('reInformed')}</div></div>
+      <div class="rstat"><div class="rv" style="color:${G.complaints>0?'#C4261A':'#1F8F5E'}">${G.complaints}</div><div class="rl">${L('reComplaints')}</div></div>
+      <div class="rstat"><div class="rv">₱${spent}</div><div class="rl">${L('reSpent')}</div></div>
+    </div>
+    <div class="re-verdict ${passed?'pass':'fail'}">${passed?L('rePass'):L('reFail')}</div>
+    <div style="background:${sat>=90?'#DFF5EC':sat>=70?'#FFF0CC':'#FFE0DC'};border-radius:10px;padding:11px 14px;font-size:13px;font-weight:700;color:${sat>=90?'#0F5E35':sat>=70?'#7A4E00':'#8B1010'};margin-bottom:8px">
+      ${L(fbKey)}
+    </div>`;
+
+  if(nextRound&&remainBudget>50){
+    html+=`<div class="carryover-box">💼 ${L('reCarryover',{b:remainBudget})}</div>`;
+  }
+
+  // Show unlock from CURRENT round's data (what unlocks for the NEXT round)
+  if(G.round.unlockMsg&&nextRound){
+    const ut=G.round.unlockTool?TOOLS[G.round.unlockTool]:null;
+    html+=`<div class="unlock-box">
+      <div class="unlock-emoji">${ut?ut.emoji:'🎁'}</div>
+      <div style="font-family:'Fredoka One',cursive;font-size:17px;margin:4px 0">${L('reUnlock')}</div>
+      <p style="font-size:12px;opacity:.85;line-height:1.5">${G.round.unlockMsg[lang]}</p>
+    </div>`;
+  }
+
+  document.getElementById('roundend-content').innerHTML=html;
+  document.getElementById('btn-continue').textContent=G.roundIdx<ROUNDS.length-1?L('btnContinue'):L('btnFinal');
+
+  G._nextCarryBudget=remainBudget>50?remainBudget:0;
+
+  showScreen('roundend');
+}
+
+function continueGame(){
+  const nextIdx=G.roundIdx+1;
+  if(nextIdx>=ROUNDS.length){
+    showFinal();
+  } else {
+    const carryB=G._nextCarryBudget||0;
+    initRound(nextIdx,carryB);
+    showScreen('game');
+    renderAll();
+    startTimer();
+    if(G.floodActive)setTimeout(showFloodAlert,800);
+  }
+}
+
+// ══════════════════════════════════════════════
+// FINAL
+// ══════════════════════════════════════════════
+async function showFinal(){
+  const scores=G.roundScores;
+  const avg=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+
+  // Efficiency = budget NOT spent / total starting budget
+  const totalStart=ROUNDS.reduce((a,r)=>a+r.budget,0);
+  const totalSpent=G.totalBudgetSpent||0;
+  const effPct=Math.max(0,Math.round((1-totalSpent/totalStart)*100));
+  const won=avg>=90&&effPct>=50;
+
+  const banner=document.getElementById('final-banner');
+  banner.className='final-verdict-banner '+(won?'win':'lose');
+  document.getElementById('final-emoji').textContent=won?(avg>=95?'🏆':'🎉'):'😓';
+  document.getElementById('final-title').textContent=won?L('finalWinTitle'):L('finalLoseTitle');
+  document.getElementById('final-sub').textContent=won?L('finalWinSub'):L('finalLoseSub');
+  document.getElementById('final-score').textContent=avg+'%';
+  document.getElementById('final-score-lbl').textContent=L('finalScoreLbl');
+  document.getElementById('btn-again').textContent=L('btnAgain');
+  document.getElementById('btn-share').textContent=L('btnShare');
+
+  document.getElementById('round-scores').innerHTML=scores.map((s,i)=>
+    `<div class="rscore-box">
+      <div class="rv" style="color:${s>=90?'#7DEBB8':s>=70?'#FFD476':'#FF9090'}">${s}%</div>
+      <div class="rl">R${i+1} ${s>=90?'✅':'❌'}</div>
+    </div>`
+  ).join('');
+
+  // Show both conditions clearly
+  const satOk=avg>=90;
+  const effOk=effPct>=50;
+  document.getElementById('final-efficiency').innerHTML=
+    `<span style="color:${satOk?'#7DEBB8':'#FF9090'}">${satOk?'✅':'❌'} Satisfaction: ${avg}% (need 90%+)</span> &nbsp; <span style="color:${effOk?'#7DEBB8':'#FF9090'}">${effOk?'✅':'❌'} Efficiency: ${effPct}% (need 50%+)</span>`;
+
+  // Save to leaderboard, won requires BOTH conditions
+  const lbScore=avg+Math.max(0,effPct-50)*0.5;
+  await fbPush('game_lb_v4',{name:G.playerName,score:avg,efficiency:effPct,won,lbScore,ts:Date.now()});
+  const entries=await fbGetLb();
+  renderLb(entries,avg,effPct);
+  showScreen('final');
+}
+
+function renderLb(entries,myAvg,myEff){
+  const el=document.getElementById('lb-list');
+  if(!entries.length){
+    el.innerHTML=`<div style="font-size:13px;opacity:.5;text-align:center;padding:12px">${L('lbEmpty')}</div>`;
+    return;
+  }
+  const medals=['🥇','🥈','🥉'];
+  el.innerHTML=entries.slice(0,8).map((e,i)=>{
+    const isMe=e.score===myAvg&&e.name===G.playerName;
+    return `<div class="lb-row ${isMe?'lb-me':''}">
+      <span class="lb-rank">${medals[i]||(i+1)}</span>
+      <span class="lb-name">${e.name||'Kapitan'}</span>
+      ${e.won?`<span class="lb-win">WIN</span>`:'<span style="font-size:11px;opacity:.4">—</span>'}
+      <span class="lb-score">${e.score}% <span style="font-size:10px;opacity:.6">${e.efficiency||0}%eff</span></span>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// FLOOD
+// ══════════════════════════════════════════════
+function showFloodAlert(){
+  G.floodShown=true;
+  pauseTimer(); // pause timer while alert is shown
+  document.getElementById('flood-title').textContent=L('floodTitle');
+  document.getElementById('flood-body').textContent=L('floodBody');
+  document.getElementById('flood-btn').textContent=L('floodBtn');
+  document.getElementById('flood-alert').classList.add('show');
+  addFeed(L('feedFlood'),'b');
+}
+
+function dismissFlood(){
+  document.getElementById('flood-alert').classList.remove('show');
+  // Resume timer after flood alert dismissed
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    updateTimerDisplay();
+    if(timeLeft<=0){clearInterval(timerInterval);endRound();}
+  },1000);
+}
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2400);
+}
+
+function shareScore(){
+  const avg=Math.round((G.roundScores||[0]).reduce((a,b)=>a+b,0)/Math.max(1,(G.roundScores||[1]).length));
+  const totalStart=ROUNDS.reduce((a,r)=>a+r.budget,0);
+  const effPct=Math.max(0,Math.round((1-(G.totalBudgetSpent||0)/totalStart)*100));
+  const won=avg>=90&&effPct>=50;
+  const msg=L('shareMsg',{name:G.playerName,s:avg,win:won?L('shareWin'):L('shareLose')});
+  if(navigator.share)navigator.share({title:'Announce It!',text:msg});
+  else navigator.clipboard.writeText(msg).then(()=>toast('Copied!'));
+}
+
+function resetGame(){
+  pauseTimer();
+  // Reset flood map visuals
+  document.getElementById('map-flood').style.height='0%';
+  document.getElementById('boat1').style.display='none';
+  document.getElementById('boat2').style.display='none';
+  G={};
+  document.getElementById('player-name').value='';
+  showScreen('intro');
+  applyLangToUI();
+}
+
+applyLangToUI();
+</script>
+</body>
+</html>
